@@ -10,8 +10,8 @@ from .ado_client import AdoClient
 from .summarizer import WorkItemSummarizer
 
 DEFAULT_ENDPOINT = "https://my-foundry-learn.cognitiveservices.azure.com/"
-DEFAULT_ORG = "msazure"
-DEFAULT_PROJECT = "One"
+DEFAULT_ORG = "msdata"
+DEFAULT_PROJECT = "Purview Data Governance"
 
 
 def _load_env() -> None:
@@ -36,6 +36,7 @@ def main() -> None:
     parser.add_argument("--endpoint", type=str, default=DEFAULT_ENDPOINT, help="Azure OpenAI endpoint")
     parser.add_argument("--deployment", type=str, default="gpt-4.1-mini", help="Model deployment name")
     parser.add_argument("--output", type=str, choices=["json", "pretty"], default="pretty", help="Output format")
+    parser.add_argument("--out", type=str, help="Write output to this file instead of stdout")
 
     args = parser.parse_args()
 
@@ -58,23 +59,31 @@ def main() -> None:
     results = summarizer.summarize_batch(work_items)
 
     if args.output == "json":
-        print(json.dumps(results, indent=2))
+        text = json.dumps(results, indent=2)
     else:
+        lines = []
         for r in results:
-            print(f"\n{'='*60}")
-            print(f"📋 [{r['work_item_id']}] {r['title']}")
-            print(f"{'='*60}")
-            print(f"Summary: {r['summary']}")
-            print(f"Effort: {r['estimated_effort']}")
+            lines.append(f"\n{'='*60}")
+            lines.append(f"📋 [{r['work_item_id']}] {r['title']}")
+            lines.append(f"{'='*60}")
+            lines.append(f"Summary: {r['summary']}")
+            lines.append(f"Effort: {r['estimated_effort']}")
             if r["risks"]:
-                print("Risks:")
+                lines.append("Risks:")
                 for risk in r["risks"]:
                     icon = {"High": "🔴", "Medium": "🟡", "Low": "🟢"}.get(risk["severity"], "⚪")
-                    print(f"  {icon} [{risk['severity']}] {risk['description']}")
+                    lines.append(f"  {icon} [{risk['severity']}] {risk['description']}")
             if r["action_items"]:
-                print("Action Items:")
+                lines.append("Action Items:")
                 for item in r["action_items"]:
-                    print(f"  → {item}")
+                    lines.append(f"  → {item}")
+        text = "\n".join(lines)
+
+    if args.out:
+        Path(args.out).write_text(text, encoding="utf-8")
+        print(f"Wrote {len(results)} summary(ies) to {args.out}")
+    else:
+        print(text)
 
 
 if __name__ == "__main__":
