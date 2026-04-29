@@ -2,7 +2,9 @@
 
 import argparse
 import json
+import os
 import sys
+from pathlib import Path
 
 from .ado_client import AdoClient
 from .summarizer import WorkItemSummarizer
@@ -12,7 +14,20 @@ DEFAULT_ORG = "msazure"
 DEFAULT_PROJECT = "One"
 
 
+def _load_env() -> None:
+    """Load .env file from project root if it exists."""
+    env_file = Path(__file__).resolve().parent.parent.parent / ".env"
+    if env_file.exists():
+        for line in env_file.read_text().splitlines():
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                key, _, value = line.partition("=")
+                os.environ.setdefault(key.strip(), value.strip())
+
+
 def main() -> None:
+    _load_env()
+
     parser = argparse.ArgumentParser(description="AI-powered Azure DevOps work item summarizer")
     parser.add_argument("--ids", type=str, help="Comma-separated work item IDs to summarize")
     parser.add_argument("--query", type=str, help="WIQL query to find work items")

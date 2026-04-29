@@ -1,9 +1,9 @@
 """LLM-based work item summarizer using Azure OpenAI structured output."""
 
 import json
+import os
 
 from openai import AzureOpenAI
-from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 
 from .models import Effort, Risk, Severity, WorkItemSummary
 
@@ -55,15 +55,25 @@ class WorkItemSummarizer:
     """Summarizes ADO work items using Azure OpenAI with structured output."""
 
     def __init__(self, endpoint: str, deployment: str = "gpt-4.1-mini") -> None:
-        token_provider = get_bearer_token_provider(
-            DefaultAzureCredential(),
-            "https://cognitiveservices.azure.com/.default",
-        )
-        self.client = AzureOpenAI(
-            azure_endpoint=endpoint,
-            azure_ad_token_provider=token_provider,
-            api_version="2024-12-01-preview",
-        )
+        api_key = os.environ.get("AZURE_OPENAI_API_KEY")
+        if api_key:
+            self.client = AzureOpenAI(
+                azure_endpoint=endpoint,
+                api_key=api_key,
+                api_version="2024-12-01-preview",
+            )
+        else:
+            from azure.identity import DefaultAzureCredential, get_bearer_token_provider
+
+            token_provider = get_bearer_token_provider(
+                DefaultAzureCredential(),
+                "https://cognitiveservices.azure.com/.default",
+            )
+            self.client = AzureOpenAI(
+                azure_endpoint=endpoint,
+                azure_ad_token_provider=token_provider,
+                api_version="2024-12-01-preview",
+            )
         self.deployment = deployment
 
     def _format_work_item(self, work_item: dict) -> str:

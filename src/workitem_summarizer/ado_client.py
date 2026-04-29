@@ -1,27 +1,26 @@
 """Azure DevOps REST API client for reading work items."""
 
-import httpx
-from azure.identity import DefaultAzureCredential
+import base64
+import os
 
-ADO_RESOURCE = "499b84ac-1321-427f-aa17-267ca6975798"  # Azure DevOps resource ID
+import httpx
 
 
 class AdoClient:
-    """Reads work items from Azure DevOps using DefaultAzureCredential."""
+    """Reads work items from Azure DevOps using a Personal Access Token."""
 
-    def __init__(self, organization: str, project: str) -> None:
+    def __init__(self, organization: str, project: str, pat: str | None = None) -> None:
         self.organization = organization
         self.project = project
         self.base_url = f"https://dev.azure.com/{organization}/{project}/_apis"
-        self._credential = DefaultAzureCredential()
-
-    def _get_token(self) -> str:
-        token = self._credential.get_token(f"{ADO_RESOURCE}/.default")
-        return token.token
+        self._pat = pat or os.environ.get("ADO_PAT", "")
+        if not self._pat:
+            raise ValueError("ADO_PAT environment variable or pat parameter is required")
 
     def _headers(self) -> dict[str, str]:
+        encoded = base64.b64encode(f":{self._pat}".encode()).decode()
         return {
-            "Authorization": f"Bearer {self._get_token()}",
+            "Authorization": f"Basic {encoded}",
             "Content-Type": "application/json",
         }
 
