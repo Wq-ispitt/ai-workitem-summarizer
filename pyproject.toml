@@ -1,0 +1,31 @@
+[project]
+name = "ai-workitem-summarizer"
+version = "0.1.0"
+description = "AI-powered Azure DevOps work item summarizer with structured JSON output and risk classification"
+requires-python = ">=3.11"
+dependencies = [
+    "openai>=1.40.0",
+    "azure-identity>=1.17.0",
+    "httpx>=0.27.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.5.0",
+]
+
+[project.scripts]
+summarize = "workitem_summarizer.cli:main"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
