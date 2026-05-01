@@ -18,6 +18,13 @@ dev = [
 
 [project.scripts]
 summarize = "workitem_summarizer.cli:main"
+fetch-eval = "evals.fetch_dataset:main"
+run-eval = "evals.run_eval:main"
+
+[tool.setuptools.packages.find]
+where = ["src", "."]
+include = ["workitem_summarizer*", "evals*"]
+exclude = ["tests*", "evals.runs*", "evals._cache*"]
 
 [tool.ruff]
 target-version = "py311"
@@ -29,3 +36,4 @@ select = ["E", "F", "I", "N", "W", "UP"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+pythonpath = ["."]

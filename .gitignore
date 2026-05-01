@@ -35,3 +35,7 @@ htmlcov/
 summary.json
 summaries.txt
 *.summary.json
+
+# Eval harness
+evals/.cache/
+evals/runs/
