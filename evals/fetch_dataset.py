@@ -6,12 +6,15 @@ evals/dataset.jsonl for the user to fill in.
 
 Usage:
     fetch-eval --ids 5197275,5173946,4826727
+    fetch-eval --query "SELECT [System.Id] FROM WorkItems WHERE ..."
+    fetch-eval --query "..." --top 25
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 from workitem_summarizer.ado_client import AdoClient
@@ -62,9 +65,14 @@ def _existing_ids() -> set[int]:
 
 
 def main() -> None:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     _load_env()
     parser = argparse.ArgumentParser(description="Seed the eval dataset from ADO work items")
-    parser.add_argument("--ids", required=True, help="Comma-separated work item IDs")
+    src = parser.add_mutually_exclusive_group(required=True)
+    src.add_argument("--ids", help="Comma-separated work item IDs")
+    src.add_argument("--query", help="WIQL query selecting work items")
+    parser.add_argument("--top", type=int, default=25, help="Max items to fetch when using --query")
     parser.add_argument("--org", default=DEFAULT_ORG)
     parser.add_argument("--project", default=DEFAULT_PROJECT)
     parser.add_argument(
@@ -75,11 +83,15 @@ def main() -> None:
     args = parser.parse_args()
 
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    ids = [int(i.strip()) for i in args.ids.split(",") if i.strip()]
     existing = _existing_ids()
 
     ado = AdoClient(args.org, args.project)
-    work_items = ado.get_work_items(ids)
+    if args.ids:
+        ids = [int(i.strip()) for i in args.ids.split(",") if i.strip()]
+        work_items = ado.get_work_items(ids)
+    else:
+        work_items = ado.query_work_items(args.query, top=args.top)
+        print(f"Query returned {len(work_items)} work item(s).")
 
     new_rows = []
     for wi in work_items:
