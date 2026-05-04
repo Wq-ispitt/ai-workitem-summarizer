@@ -39,3 +39,4 @@ summaries.txt
 # Eval harness
 evals/.cache/
 evals/runs/
+evals/dataset.jsonl

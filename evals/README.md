@@ -13,7 +13,7 @@ Deterministic, regression-oriented evaluation for the work item summarizer.
 
 ```
 evals/
-├── dataset.jsonl          # labeled golden set (in git, no raw work item data)
+├── dataset.jsonl          # labeled golden set (gitignored — contains internal titles)
 ├── dataset.example.jsonl  # one synthetic example showing the schema
 ├── .cache/{id}.json       # raw ADO inputs (gitignored — may contain private data)
 ├── runs/{ts}/             # one folder per eval run (gitignored)
