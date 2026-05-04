@@ -20,6 +20,7 @@ dev = [
 summarize = "workitem_summarizer.cli:main"
 fetch-eval = "evals.fetch_dataset:main"
 run-eval = "evals.run_eval:main"
+draft-labels = "evals.draft_labels:main"
 
 [tool.setuptools.packages.find]
 where = ["src", "."]
